@@ -1,0 +1,47 @@
+---
+- hosts: ssh
+  remote_user: root
+  tasks:
+  - name: install nginx
+    apt:
+      name: nginx
+      state: latest
+ 
+  - name: install curl to update source package of debian for nodejs
+    apt:
+      name: curl
+      state: latest
+  - name: update source package of debian for nodejs
+    shell: curl -sL https://deb.nodesource.com/setup_8.x | sh
+ 
+  - name: install nodejs & npm
+    apt:
+      name: nodejs
+      state: latest
+ 
+  - name: install git
+    apt:
+      name: git
+      state: latest
+  - name: clone the nodejs project from tp
+    git:
+      repo: https://git.mrzee.fr/student/my-node-project.git
+      dest: /var/www/my-node-project
+ 
+  - name: install nodejs dependencies with npm install
+    npm:
+      path: /var/www/my-node-project/myapp
+ 
+  - name: install pm2 in global (-g) to launch nodejs server
+    npm:
+      name: pm2
+      global: yes
+ 
+  - name: Copy the vhost file to nginx sites-enabled
+    shell: cp /var/www/my-node-project/vhost /etc/nginx/sites-enabled/default
+ 
+  - name: start nginx service
+    shell: service nginx restart
+ 
+  - name: Run the nodejs app
+    shell: pm2 start /var/www/my-node-project/myapp/bin/www
